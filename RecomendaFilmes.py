@@ -58,15 +58,6 @@ aventura_infantil_e_fantasia.drop(eu_assisti, errors='ignore').sort_values("nota
 x-y ==> distância
 """
 
-import matplotlib.pyplot as plt
-plt.plot(4, 4.5, "go")
-plt.plot(5, 5, "yo")
-plt.legend(["João", "Maria"])
-plt.title("Calcular a distância entre dois usuários")
-
-plt.plot([4, 5], [4.5, 4.5], color="b", linestyle="-")
-plt.plot([4, 5], [4.5, 5], color="b", linestyle="-")
-plt.plot([5, 5], [4.5, 5], color="b", linestyle="-")
 
 import numpy as np
 
@@ -280,7 +271,12 @@ def sugere_para(voce, k_mais_proximos = 10, numero_de_usuarios_a_analisar = None
   usuarios_similares = similares.index
   notas_dos_similares = notas.set_index("usuarioId").loc[usuarios_similares]
   recomendacoes = notas_dos_similares.groupby("filmeId").mean()[["nota"]]
-  recomendacoes = recomendacoes.sort_values("nota", ascending=False)
+  aparicoes = notas_dos_similares.groupby("filmeId").count()[['nota']]
+  filtro_minimo = k_mais_proximos / 2
+  recomendacoes = recomendacoes.join(aparicoes, lsuffix="_media_dos_usuarios", rsuffix="_aparicoes_nos_usuarios")
+  recomendacoes = recomendacoes.query("nota_aparicoes_nos_usuarios >= %.2f" % filtro_minimo)
+  recomendacoes = recomendacoes.sort_values("nota_media_dos_usuarios", ascending=False)
+  #recomendacoes = recomendacoes.drop(filmes_que_voce_ja_viu, errors='ignore')
   return recomendacoes.join(filmes)
 
 """# Testar um usuário novo"""
